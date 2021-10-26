@@ -11,6 +11,8 @@ class Material extends Model
 {
     use HasFactory;
 
+    protected $fillable= ['id', 'name'];
+
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class)->withPivotValue('quantity');
