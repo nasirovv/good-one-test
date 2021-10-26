@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class CalculateController extends Controller
 {
-    public function index(Request $request)
+    public $skip = [];
+    public $warehouseAmount = [];
+    public function index(Request $request): array
     {
         $result = [];
         foreach($request->get('products') as $product){
@@ -26,7 +28,7 @@ class CalculateController extends Controller
             foreach ($materials as $material){
                 $data['product_materials'][] = $this->test($material->material_id, $material->quantity * $product['amount']);
             }
-            $result[] = $data;
+            $result['result'][] = $data;
         }
 
         return $result;
@@ -45,10 +47,12 @@ class CalculateController extends Controller
         $array = [];
         $materials = Warehouse::query()
             ->where('material_id', $material_id)
+            ->when(count($this->skip), function($query){
+                $query->whereNotIn('id', $this->skip);
+            })
             ->get();
         $getter = $quantity;
         foreach ($materials as $warehouse){
-                $skip = 0;
                 $house_id = $warehouse->id;
                 if($warehouse->amount >= $getter && $getter){
                     $array[] = [
@@ -56,6 +60,10 @@ class CalculateController extends Controller
                         'material_name' => $warehouse->material_id,
                         'quantity' => $getter,
                         'price' => $warehouse->price
+                    ];
+                    $this->warehouseAmount[] = [
+                        "warehouse_id" => $warehouse->id,
+                        "warehouseAmountRemainder" => $warehouse->amount - $getter
                     ];
                     $getter = 0;
                 }else {
@@ -67,6 +75,7 @@ class CalculateController extends Controller
                         'price' => $warehouse->price
                     ];
                     $getter -= $get;
+                    $this->skip[] = $house_id;
                 }
             };
         return $array;
