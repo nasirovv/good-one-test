@@ -8,12 +8,14 @@ use App\Models\Warehouse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CalculateController extends Controller
 {
-    public $skip = [];
-    public $warehouseAmount = [];
-    public function index(Request $request)
+    private $skip = [];
+    private $warehouseAmount = [];
+
+    public function index(Request $request): JsonResponse
     {
         $result = [];
         foreach($request->get('products') as $product){
@@ -26,23 +28,14 @@ class CalculateController extends Controller
                 ->select('material_id', 'quantity')
                 ->get();
             foreach ($materials as $material){
-                $data['product_materials'][] = $this->test($material->material_id, $material->quantity * $product['amount']);
+                $data['product_materials'][] = $this->calculate($material->material_id, $material->quantity * $product['amount']);
             }
             $result['result'][] = $data;
         }
-            return $this->warehouseAmount;
-//        return $result;
+            return response()->json($result, 200);
     }
 
-    public function calculate($material_id, $quantity){
-        $material = Material::query()
-            ->where('id', $material_id)
-            ->whereHas('warehouses', function ($query){
-                return $query->select('amount');
-            });
-    }
-
-    public function test($material_id = 1, $quantity = 30)
+    public function calculate($material_id, $quantity): array
     {
         $array = [];
         $materials = Warehouse::query()
@@ -61,26 +54,27 @@ class CalculateController extends Controller
                         }
                     }
                 }
-                if($remainder ?? $warehouse->amount >= $getter && $getter){
+                if(($remainder ?? $warehouse->amount) >= $getter && $getter){
                     $array[] = [
                         'warehouse_id' => $house_id,
-                        'material_name' => $warehouse->material_id,
+                        'material_name' => $this->getMaterialName($warehouse->material_id),
                         'quantity' => $getter,
                         'price' => $warehouse->price
                     ];
                     if(array_key_exists($warehouse->id, $this->warehouseAmount)){
-                        $this->warehouseAmount[0][$warehouse->id] -= $getter;
+                        Log::debug($this->warehouseAmount[$warehouse->id]);
+                        $this->warehouseAmount[$warehouse->id] -= $getter;
                     }else {
-                        $this->warehouseAmount[] = [
+                        $this->warehouseAmount += [
                             $warehouse->id => $warehouse->amount - $getter
                         ];
                     }
                     $getter = 0;
                 }else {
-                    $get = $warehouse->amount;
+                    $get = $remainder ?? $warehouse->amount;
                     $array[] = [
                         'warehouse_id' => $house_id,
-                        'material_name' => $warehouse->material_id,
+                        'material_name' => $this->getMaterialName($warehouse->material_id),
                         'quantity' => $get,
                         'price' => $warehouse->price
                     ];
@@ -88,10 +82,21 @@ class CalculateController extends Controller
                     $this->skip[] = $house_id;
                 }
             };
+            if($getter){
+                $array[] = [
+                    'warehouse_id' => null,
+                    'material_name' => $this->getMaterialName($material_id),
+                    'quantity' => $getter,
+                    'price' => null
+                ];
+            }
         return $array;
+    }
+
+    private function getMaterialName($id)
+    {
+        return Material::query()->findOrFail($id)->name;
     }
 }
 
 
-
-//$users = DB::table('users')->skip(10)->take(5)->get();
