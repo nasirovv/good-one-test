@@ -20,4 +20,3 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('calculate', [CalculateController::class, 'index']);
-Route::post('test', [CalculateController::class, 'test']);

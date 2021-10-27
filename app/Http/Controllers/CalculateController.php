@@ -35,7 +35,7 @@ class CalculateController extends Controller
             return response()->json($result, 200);
     }
 
-    public function calculate($material_id, $quantity): array
+    private function calculate($material_id, $quantity): array
     {
         $array = [];
         $materials = Warehouse::query()
@@ -46,23 +46,21 @@ class CalculateController extends Controller
             ->get();
         $getter = $quantity;
         foreach ($materials as $warehouse){
-                $house_id = $warehouse->id;
                 if(count($this->warehouseAmount)){
                     foreach ($this->warehouseAmount as $key => $value){
-                        if ($house_id === $key){
+                        if ($warehouse->id === $key){
                             $remainder = $value;
                         }
                     }
                 }
                 if(($remainder ?? $warehouse->amount) >= $getter && $getter){
                     $array[] = [
-                        'warehouse_id' => $house_id,
+                        'warehouse_id' => $warehouse->id,
                         'material_name' => $this->getMaterialName($warehouse->material_id),
                         'quantity' => $getter,
                         'price' => $warehouse->price
                     ];
                     if(array_key_exists($warehouse->id, $this->warehouseAmount)){
-                        Log::debug($this->warehouseAmount[$warehouse->id]);
                         $this->warehouseAmount[$warehouse->id] -= $getter;
                     }else {
                         $this->warehouseAmount += [
@@ -73,13 +71,13 @@ class CalculateController extends Controller
                 }else {
                     $get = $remainder ?? $warehouse->amount;
                     $array[] = [
-                        'warehouse_id' => $house_id,
+                        'warehouse_id' => $warehouse->id,
                         'material_name' => $this->getMaterialName($warehouse->material_id),
                         'quantity' => $get,
                         'price' => $warehouse->price
                     ];
                     $getter -= $get;
-                    $this->skip[] = $house_id;
+                    $this->skip[] = $warehouse->id;
                 }
             };
             if($getter){
