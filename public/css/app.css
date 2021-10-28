@@ -196,10 +196,15 @@ input[type='checkbox'] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-.flexWidth{
     width: 400px;
     padding: 0.7rem 0;
     border-bottom: 1px solid #eaecef;
+}
+
+table, th, td{
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+    padding: 5px;
 }
 

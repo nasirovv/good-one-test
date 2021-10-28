@@ -1,10 +1,7 @@
 <template>
-    <div class="flex flexWidth">
-        <div class="flex" style="width: 150px">
+    <div class="flex">
             <span style="margin-right: 5px;">{{ product.name }}</span>
-            <input type="number" :disabled="isCompleted" v-model="inputNumber">
-        </div>
-        <button class="btn" @click="completed" :disabled="isCompleted">Completed</button>
+            <input type="number" :disabled="isCompleted" v-model="inputNumber" @focusout="completed">
     </div>
 </template>
 

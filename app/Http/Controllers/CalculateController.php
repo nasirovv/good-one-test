@@ -8,7 +8,6 @@ use App\Models\Warehouse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class CalculateController extends Controller
 {
@@ -28,7 +27,9 @@ class CalculateController extends Controller
                 ->select('material_id', 'quantity')
                 ->get();
             foreach ($materials as $material){
-                $data['product_materials'][] = $this->calculate($material->material_id, $material->quantity * $product['amount']);
+                foreach ($this->calculate($material->material_id, $material->quantity * $product['amount']) as $materialJson){
+                    $data['product_materials'][] = $materialJson;
+                }
             }
             $result['result'][] = $data;
         }

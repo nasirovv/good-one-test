@@ -8,21 +8,30 @@
                               @newProduct="setProduct"
                 ></product-item>
             <button class="btn primary mt-3" @click="send">Send</button>
+
+            <h2>Result</h2>
+                <result-item v-for="(product, index) in result"
+                             :key="index"
+                             :product="product"
+                ></result-item>
         </div>
     </div>
 </template>
 
 <script>
 import ProductItem from "./ProductItem";
+import ResultItem from "./ResultItem";
 export default {
     data(){
         return {
             products: [],
-            data: []
+            data: [],
+            result: []
         }
     },
     components: {
-        ProductItem
+        ProductItem,
+        ResultItem
     },
     methods: {
         getProducts(){
@@ -31,8 +40,9 @@ export default {
             .catch(error => console.log(error))
         },
         send(){
+            console.log(this.data)
             this.axios.post('api/calculate', {"products": this.data})
-            .then(response => console.log(response.data))
+            .then(response => this.result = response.data.result)
             .catch(error => console.log(error))
         },
         setProduct(id, amount){
