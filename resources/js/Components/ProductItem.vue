@@ -1,10 +1,10 @@
 <template>
     <div class="flex flexWidth">
-        <div class="flex">
-            <input type="checkbox" v-model="checkbox">
-            <span style="margin-left: 5px;">{{ product.name }}</span>
+        <div class="flex" style="width: 150px">
+            <span style="margin-right: 5px;">{{ product.name }}</span>
+            <input type="number" :disabled="isCompleted" v-model="inputNumber">
         </div>
-        <input type="number" :disabled="!checkbox" v-model="inputNumber">
+        <button class="btn" @click="completed" :disabled="isCompleted">Completed</button>
     </div>
 </template>
 
@@ -13,8 +13,19 @@ export default {
     props: ['product'],
     data() {
         return {
-            checkbox: false,
+            isCompleted: false,
             inputNumber: null
+        }
+    },
+    methods: {
+        getAmount(){
+            if (this.isCompleted && this.inputNumber){
+                this.$emit("newProduct", this.product.id, this.inputNumber)
+            }
+        },
+        completed() {
+            this.isCompleted = true
+            this.getAmount()
         }
     }
 }
